@@ -1,0 +1,25 @@
+一、PHP+MySQL缓冲查询和无缓冲查询
+http://php.net/manual/zh/mysqlinfo.concepts.buffering.php
+http://php.net/manual/zh/mysqli.query.php
+
+二、PHP MySQL查询(mysqli,pdo_mysql)默认使用缓冲模式.
+也就是说查询结果将一次性从MySQL传输到PHP进程内存中, 这时可以统计结果集的行数,以及移动结果集指针.
+
+1. 缓冲模式下,如果结果集很大,那么PHP进程也会占用大量的内存, 直到结果集被unset或者free.
+store_result也用于缓冲模式,所有结果一次性存储到PHP进程中:
+  mysqli::store_result
+  mysqli_stmt::store_result
+如果PHP的MySQL数据库驱动底层用的是libmysqlclient,那么memory_limit不能统计到结果集占用的内存,
+除非结果集已经赋值给PHP变量,如果底层使用mysqlnd作为驱动时则可以统计到(PHP从5.4开始默认底层默认使用mysqlnd).
+
+2. 无缓冲模式下执行的查询将会返回一个resource资源引用, 位于MySQL查询结果等待PHP获取.
+无缓冲模式下,PHP进程占用的内存很少,但会增大MySQL服务器的负载.
+在PHP取回所有结果前,在当前数据库连接下不能发送其他的查询请求.
+
+三、总结:
+1. 当结果集不大时,或者需要在读取所有行前获取结果集行数时,使用缓冲查询(默认).
+2. 当结果集很大时,使用无缓冲查询,避免PHP进程占用大量的内存.
+
+四、无缓冲查询简称use_result，无缓冲查询写法：
+$rs = $mysqli->query("SELECT * FROM City", MYSQLI_USE_RESULT);
+$pdo->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, false);
