@@ -1,3 +1,4 @@
+<?php
 // Input: A decimal number as a String.
 // Output: The equivalent hexadecimal number as a String.
 function dec2hex($number) {
