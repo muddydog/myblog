@@ -1,0 +1,42 @@
+#!/bin/bash
+
+RC_ERR_NO_HOST=11
+RC_ERR_NO_PASSWORD=21
+RC_ERR_NO_SSHPASS=31
+RC_SUCCESS=0
+
+#line format should be "host-alias password server"
+pass_path=~/.ssh/sshp_pass
+
+host=$1
+
+# arguments
+if [ -z $host ]; then
+    echo "ERR_NO_HOST, please input host."
+    exit $RC_ERR_NO_HOST
+fi
+
+# read file
+rec=`grep "$host " $pass_path | cut -d' ' -f 2,3`
+if [ -z "$rec" ]; then
+    echo "ERR_NO_PASSWORD, please record password first. file path $pass_path"
+    exit $RC_ERR_NO_PASSWORD
+fi
+
+if [ 1 -eq ${#rec[*]} ]; then
+    OLD_IFS="$IFS"
+    IFS=" "
+    conf=($rec)
+    IFS="$OLD_IFS"
+else
+    conf=($rec)
+fi
+
+path=`which sshpass`
+if [ -z $path ]; then
+    echo "ERR_NO_SSHPASS, must install sshpass first"
+    exit $RC_ERR_NO_SSHPASS
+fi
+
+$path -p ${conf[0]} ssh ${conf[1]}
+exit $RC_SUCCESS
